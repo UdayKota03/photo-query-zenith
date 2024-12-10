@@ -4,6 +4,7 @@ import { Results } from '@/components/Results';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { analyzeImagesWithOpenAI } from '@/utils/openai';
 
 const Index = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
@@ -19,22 +20,24 @@ const Index = () => {
   };
 
   const handleGenerate = async () => {
-    if (uploadedImages.length === 0 && !userQuery) {
+    if (uploadedImages.length === 0) {
       toast({
-        title: "No input provided",
-        description: "Please upload images or enter a question",
+        title: "No images uploaded",
+        description: "Please upload at least one image to analyze",
         variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-    // Simulate API call - replace with actual backend integration
-    setTimeout(() => {
-      const response = `Processed ${uploadedImages.length} images${userQuery ? ` with query: "${userQuery}"` : ''}. Replace this with actual API integration response.`;
+    try {
+      const response = await analyzeImagesWithOpenAI(uploadedImages, userQuery);
       setResult(response);
+    } catch (error) {
+      console.error('Error generating analysis:', error);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const handleFollowUp = async () => {
@@ -48,11 +51,15 @@ const Index = () => {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setResult(prev => `${prev}\n\nFollow-up answer for: "${followUpQuestion}"\nThis is a simulated response. Replace with actual API integration.`);
+    try {
+      const response = await analyzeImagesWithOpenAI(uploadedImages, followUpQuestion);
+      setResult(prev => `${prev}\n\nFollow-up answer for: "${followUpQuestion}"\n${response}`);
       setFollowUpQuestion('');
+    } catch (error) {
+      console.error('Error processing follow-up:', error);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
