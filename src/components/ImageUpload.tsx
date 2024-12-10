@@ -3,29 +3,24 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, Image as ImageIcon } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
-export const ImageUpload = ({ onImageUpload }: { onImageUpload: (file: File) => void }) => {
-  const [preview, setPreview] = useState<string | null>(null);
+export const ImageUpload = ({ onImageUpload }: { onImageUpload: (files: File[]) => void }) => {
+  const [previews, setPreviews] = useState<string[]>([]);
   const { toast } = useToast();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please upload an image smaller than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-        onImageUpload(file);
-      };
-      reader.readAsDataURL(file);
+    const oversizedFiles = acceptedFiles.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast({
+        title: "Files too large",
+        description: "Some files are larger than 5MB",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    const newPreviews = acceptedFiles.map(file => URL.createObjectURL(file));
+    setPreviews(prev => [...prev, ...newPreviews]);
+    onImageUpload(acceptedFiles);
   }, [onImageUpload, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -33,7 +28,7 @@ export const ImageUpload = ({ onImageUpload }: { onImageUpload: (file: File) => 
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
     },
-    maxFiles: 1
+    multiple: true
   });
 
   return (
@@ -47,14 +42,19 @@ export const ImageUpload = ({ onImageUpload }: { onImageUpload: (file: File) => 
         }`}
       >
         <input {...getInputProps()} />
-        {preview ? (
+        {previews.length > 0 ? (
           <div className="space-y-4">
-            <img
-              src={preview}
-              alt="Preview"
-              className="max-h-64 mx-auto rounded-lg shadow-lg animate-fade-in"
-            />
-            <p className="text-sm text-gray-500">Click or drag to replace image</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {previews.map((preview, index) => (
+                <img
+                  key={index}
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  className="h-32 w-full object-cover rounded-lg shadow-lg"
+                />
+              ))}
+            </div>
+            <p className="text-sm text-gray-500">Click or drag to add more images</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -68,8 +68,8 @@ export const ImageUpload = ({ onImageUpload }: { onImageUpload: (file: File) => 
             <div>
               <p className="text-lg font-medium">
                 {isDragActive
-                  ? "Drop the image here"
-                  : "Drag & drop an image here"}
+                  ? "Drop the images here"
+                  : "Drag & drop images here"}
               </p>
               <p className="text-sm text-gray-500">or click to select</p>
             </div>

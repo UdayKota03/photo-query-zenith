@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleImageUpload = (file: File) => {
-    setUploadedImage(file);
+  const handleImageUpload = (files: File[]) => {
+    setUploadedImages(prev => [...prev, ...files]);
     setResult(null);
   };
 
   const handleGenerate = async () => {
-    if (!uploadedImage) {
+    if (uploadedImages.length === 0) {
       toast({
-        title: "No image selected",
-        description: "Please upload an image first",
+        title: "No images selected",
+        description: "Please upload at least one image first",
         variant: "destructive",
       });
       return;
@@ -28,7 +28,7 @@ const Index = () => {
     setIsLoading(true);
     // Simulate API call - replace with actual backend integration
     setTimeout(() => {
-      setResult("This is a placeholder result. Replace this with actual API integration response.");
+      setResult(`Processed ${uploadedImages.length} images. Replace this with actual API integration response.`);
       setIsLoading(false);
     }, 2000);
   };
@@ -42,7 +42,7 @@ const Index = () => {
         
         <ImageUpload onImageUpload={handleImageUpload} />
         
-        {uploadedImage && (
+        {uploadedImages.length > 0 && (
           <div className="flex justify-center mt-6">
             <Button
               onClick={handleGenerate}
