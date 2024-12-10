@@ -9,16 +9,16 @@ export const Results = ({ isLoading, result }: ResultsProps) => {
   if (!isLoading && !result) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-8 p-6 bg-white/10 backdrop-blur-sm rounded-lg shadow-lg animate-fade-in">
+    <div className="bg-white/5 backdrop-blur-xl rounded-xl p-6 shadow-2xl border border-white/10 animate-fade-in">
       {isLoading ? (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center space-x-2 py-8">
           <Loader className="h-6 w-6 animate-spin text-purple-500" />
-          <span className="text-white">Processing request...</span>
+          <span className="text-white">Processing your request...</span>
         </div>
       ) : (
         <div className="prose prose-invert max-w-none">
-          <h3 className="text-xl font-semibold mb-4 text-white">Results</h3>
-          <div className="text-white whitespace-pre-wrap">{result}</div>
+          <h3 className="text-xl font-semibold mb-4 text-white">Analysis Results</h3>
+          <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">{result}</div>
         </div>
       )}
     </div>
